@@ -78,11 +78,13 @@ HttpVersion string_to_version(const std::string& version_string);
 // Each message will have an HTTP version, collection of header fields,
 // and message content. The collection of headers and content can be empty.
 class HttpMessageInterface {
-public:
+ public:
   HttpMessageInterface() : version_(HttpVersion::HTTP_1_1) {}
   virtual ~HttpMessageInterface() = default;
 
-  void SetHeader(const std::string& key, const std::string& value) { headers_[key] = std::move(value); }
+  void SetHeader(const std::string& key, const std::string& value) {
+    headers_[key] = std::move(value);
+  }
   void RemoveHeader(const std::string& key) { headers_.erase(key); }
   void ClearHeader() { headers_.clear(); }
   void SetContent(const std::string& content) {
@@ -94,29 +96,30 @@ public:
     SetContentLength();
   }
 
-  HttpVersion version () const { return version_; }
+  HttpVersion version() const { return version_; }
   std::string header(const std::string& key) const {
-    if (headers_.count(key) > 0)
-      return headers_.at(key);
+    if (headers_.count(key) > 0) return headers_.at(key);
     return std::string();
   }
   std::map<std::string, std::string> headers() const { return headers_; }
   std::string content() const { return content_; }
   size_t content_length() const { return content_.length(); }
 
-protected:
+ protected:
   HttpVersion version_;
   std::map<std::string, std::string> headers_;
   std::string content_;
 
-  void SetContentLength() { SetHeader("Content-Length", std::to_string(content_.length())); }
+  void SetContentLength() {
+    SetHeader("Content-Length", std::to_string(content_.length()));
+  }
 };
 
 // An HttpRequest object represents a single HTTP request
 // It has a HTTP method and URI so that the server can identify
 // the corresponding resource and action
 class HttpRequest : public HttpMessageInterface {
-public:
+ public:
   HttpRequest() : method_(HttpMethod::GET) {}
   ~HttpRequest() = default;
 
@@ -129,7 +132,7 @@ public:
   friend std::string to_string(const HttpRequest& request);
   friend HttpRequest string_to_request(const std::string& request_string);
 
-private:
+ private:
   HttpMethod method_;
   Uri uri_;
 };
@@ -138,7 +141,7 @@ private:
 // The HTTP server sends an HTTP response to a client that include
 // an HTTP status code, headers, and (optional) content
 class HttpResponse : public HttpMessageInterface {
-public:
+ public:
   HttpResponse() : status_code_(HttpStatusCode::Ok) {}
   HttpResponse(HttpStatusCode status_code) : status_code_(status_code) {}
   ~HttpResponse() = default;
@@ -147,20 +150,19 @@ public:
 
   HttpStatusCode status_code() const { return status_code_; }
 
-  friend std::string to_string(const HttpResponse& request, bool send_content = true);
+  friend std::string to_string(const HttpResponse& request, bool send_content);
   friend HttpResponse string_to_response(const std::string& response_string);
 
-private:
+ private:
   HttpStatusCode status_code_;
 };
 
 // Utility functions to convert HTTP message objects to string and vice versa
 std::string to_string(const HttpRequest& request);
-std::string to_string(const HttpResponse& response, bool send_content);
+std::string to_string(const HttpResponse& response, bool send_content = true);
 HttpRequest string_to_request(const std::string& request_string);
 HttpResponse string_to_response(const std::string& response_string);
 
-} // namespace simple_http_server
+}  // namespace simple_http_server
 
 #endif  // HTTP_MESSAGE_H_
-

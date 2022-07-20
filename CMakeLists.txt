@@ -26,4 +26,3 @@ add_executable(test_SimpleHttpServer
 
 target_link_libraries(SimpleHttpServer PRIVATE Threads::Threads)
 target_link_libraries(test_SimpleHttpServer PRIVATE Threads::Threads)
-

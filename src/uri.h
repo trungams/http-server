@@ -14,15 +14,15 @@ namespace simple_http_server {
 // A Uri object will contain a valid scheme (for example: HTTP), host,
 // port, and the actual URI path
 class Uri {
-public:
+ public:
   Uri() = default;
-  explicit Uri(const std::string& path) : path_(path) {
-    SetPathToLowercase();
-  }
+  explicit Uri(const std::string& path) : path_(path) { SetPathToLowercase(); }
   ~Uri() = default;
 
   inline bool operator<(const Uri& other) const { return path_ < other.path_; }
-  inline bool operator==(const Uri& other) const { return path_ == other.path_; }
+  inline bool operator==(const Uri& other) const {
+    return path_ == other.path_;
+  }
 
   void SetPath(const std::string& path) {
     path_ = std::move(path);
@@ -34,7 +34,7 @@ public:
   std::uint16_t port() const { return port_; }
   std::string path() const { return path_; }
 
-private:
+ private:
   // Only the path is supported for now
   std::string path_;
   std::string scheme_;
@@ -42,11 +42,11 @@ private:
   std::uint16_t port_;
 
   void SetPathToLowercase() {
-    std::transform(path_.begin(), path_.end(), path_.begin(), [](char c) { return tolower(c); });
+    std::transform(path_.begin(), path_.end(), path_.begin(),
+                   [](char c) { return tolower(c); });
   }
 };
 
-} // namespace simple_http_server
+}  // namespace simple_http_server
 
 #endif  // URI_H_
-

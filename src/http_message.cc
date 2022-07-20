@@ -4,9 +4,9 @@
 #include <cctype>
 #include <iterator>
 #include <map>
+#include <sstream>
 #include <stdexcept>
 #include <string>
-#include <sstream>
 #include <type_traits>
 #include <utility>
 
@@ -88,7 +88,8 @@ std::string to_string(HttpStatusCode status_code) {
 HttpMethod string_to_method(const std::string& method_string) {
   std::string method_string_uppercase;
   std::transform(method_string.begin(), method_string.end(),
-      std::back_inserter(method_string_uppercase), [](char c) { return toupper(c); });
+                 std::back_inserter(method_string_uppercase),
+                 [](char c) { return toupper(c); });
   if (method_string_uppercase == "GET") {
     return HttpMethod::GET;
   } else if (method_string_uppercase == "HEAD") {
@@ -115,14 +116,16 @@ HttpMethod string_to_method(const std::string& method_string) {
 HttpVersion string_to_version(const std::string& version_string) {
   std::string version_string_uppercase;
   std::transform(version_string.begin(), version_string.end(),
-      std::back_inserter(version_string_uppercase), [](char c) { return toupper(c); });
+                 std::back_inserter(version_string_uppercase),
+                 [](char c) { return toupper(c); });
   if (version_string_uppercase == "HTTP/0.9") {
     return HttpVersion::HTTP_0_9;
   } else if (version_string_uppercase == "HTTP/1.0") {
     return HttpVersion::HTTP_1_0;
   } else if (version_string_uppercase == "HTTP/1.1") {
     return HttpVersion::HTTP_1_1;
-  } else if (version_string_uppercase == "HTTP/2" || version_string_uppercase == "HTTP/2.0") {
+  } else if (version_string_uppercase == "HTTP/2" ||
+             version_string_uppercase == "HTTP/2.0") {
     return HttpVersion::HTTP_2_0;
   } else {
     throw std::invalid_argument("Unexpected HTTP version");
@@ -152,8 +155,7 @@ std::string to_string(const HttpResponse& response, bool send_content) {
   for (const auto& p : response.headers())
     oss << p.first << ": " << p.second << "\r\n";
   oss << "\r\n";
-  if (send_content)
-    oss << response.content();
+  if (send_content) oss << response.content();
 
   return oss.str();
 }
@@ -175,7 +177,7 @@ HttpRequest string_to_request(const std::string& request_string) {
   start_line = request_string.substr(lpos, rpos - lpos);
   lpos = rpos + 2;
   rpos = request_string.find("\r\n\r\n", lpos);
-  if (rpos != std::string::npos) {          // has header
+  if (rpos != std::string::npos) {  // has header
     header_lines = request_string.substr(lpos, rpos - lpos);
     lpos = rpos + 4;
     rpos = request_string.length();
@@ -184,7 +186,7 @@ HttpRequest string_to_request(const std::string& request_string) {
     }
   }
 
-  iss.clear();                              // parse the start line
+  iss.clear();  // parse the start line
   iss.str(start_line);
   iss >> method >> path >> version;
   if (!iss.good() && !iss.eof()) {
@@ -196,7 +198,7 @@ HttpRequest string_to_request(const std::string& request_string) {
     throw std::logic_error("HTTP version not supported");
   }
 
-  iss.clear();                              // parse header fields
+  iss.clear();  // parse header fields
   iss.str(header_lines);
   while (std::getline(iss, line)) {
     std::istringstream header_stream(line);
@@ -204,8 +206,12 @@ HttpRequest string_to_request(const std::string& request_string) {
     std::getline(header_stream, value);
 
     // remove whitespaces from the two strings
-    key.erase(std::remove_if(key.begin(), key.end(), [](char c) { return std::isspace(c); }), key.end());
-    value.erase(std::remove_if(value.begin(), value.end(), [](char c) { return std::isspace(c); }), value.end());
+    key.erase(std::remove_if(key.begin(), key.end(),
+                             [](char c) { return std::isspace(c); }),
+              key.end());
+    value.erase(std::remove_if(value.begin(), value.end(),
+                               [](char c) { return std::isspace(c); }),
+                value.end());
     request.SetHeader(key, value);
   }
 
@@ -218,5 +224,4 @@ HttpResponse string_to_response(const std::string& response_string) {
   throw std::logic_error("Method not implemented");
 }
 
-} // namespace simple_http_server
-
+}  // namespace simple_http_server

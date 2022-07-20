@@ -12,14 +12,20 @@
 
 using namespace simple_http_server;
 
-#define EXPECT_TRUE(x) { if (!(x)) err++, std::cerr << __FUNCTION__ << " failed on line " << __LINE__ << std::endl; }
+#define EXPECT_TRUE(x)                                                   \
+  {                                                                      \
+    if (!(x))                                                            \
+      err++, std::cerr << __FUNCTION__ << " failed on line " << __LINE__ \
+                       << std::endl;                                     \
+  }
 
 int err = 0;
 
 void test_uri_path_to_lowercase() {
   std::string path = "/SayHello.HTML?name=abc&message=welcome";
   std::string lowercase_path;
-  std::transform(path.begin(), path.end(), std::back_inserter(lowercase_path), [](char c) { return tolower(c); });
+  std::transform(path.begin(), path.end(), std::back_inserter(lowercase_path),
+                 [](char c) { return tolower(c); });
 
   Uri uri("/SayHello.html?name=abc&message=welcome");
   EXPECT_TRUE(uri.path() == lowercase_path);
@@ -85,7 +91,7 @@ int main(void) {
   test_request_to_string();
   test_response_to_string();
 
-  std::cout << "All tests have finished. There were " << err << " errors in total" << std::endl;
+  std::cout << "All tests have finished. There were " << err
+            << " errors in total" << std::endl;
   return 0;
 }
-
