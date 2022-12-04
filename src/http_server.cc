@@ -25,7 +25,9 @@ HttpServer::HttpServer(const std::string &host, std::uint16_t port)
       port_(port),
       sock_fd_(0),
       running_(false),
-      worker_epoll_fd_() {
+      worker_epoll_fd_(),
+      rng_(std::chrono::steady_clock::now().time_since_epoch().count()),
+      sleep_times_(10, 100) {
   CreateSocket();
 }
 
@@ -94,13 +96,22 @@ void HttpServer::Listen() {
   socklen_t client_len = sizeof(client_address);
   int client_fd;
   int current_worker = 0;
+  bool active = true;
 
   // accept new connections and distribute tasks to worker threads
   while (running_) {
+    if (!active) {
+      std::this_thread::sleep_for(
+          std::chrono::microseconds(sleep_times_(rng_)));
+    }
     client_fd = accept4(sock_fd_, (sockaddr *)&client_address, &client_len,
                         SOCK_NONBLOCK);
-    if (client_fd < 0) continue;
+    if (client_fd < 0) {
+      active = false;
+      continue;
+    }
 
+    active = true;
     client_data = new EventData();
     client_data->fd = client_fd;
     control_epoll_event(worker_epoll_fd_[current_worker], EPOLL_CTL_ADD,
@@ -113,13 +124,21 @@ void HttpServer::Listen() {
 void HttpServer::ProcessEvents(int worker_id) {
   EventData *data;
   int epoll_fd = worker_epoll_fd_[worker_id];
+  bool active = true;
+
   while (running_) {
+    if (!active) {
+      std::this_thread::sleep_for(
+          std::chrono::microseconds(sleep_times_(rng_)));
+    }
     int nfds = epoll_wait(worker_epoll_fd_[worker_id],
                           worker_events_[worker_id], HttpServer::kMaxEvents, 0);
-    if (nfds < 0) {
+    if (nfds <= 0) {
+      active = false;
       continue;
     }
 
+    active = true;
     for (int i = 0; i < nfds; i++) {
       const epoll_event &current_event = worker_events_[worker_id][i];
       data = reinterpret_cast<EventData *>(current_event.data.ptr);

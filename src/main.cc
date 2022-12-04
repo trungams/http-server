@@ -2,10 +2,12 @@
 #include <sys/time.h>
 
 #include <cerrno>
+#include <chrono>
 #include <cstring>
 #include <iostream>
 #include <stdexcept>
 #include <string>
+#include <thread>
 
 #include "http_message.h"
 #include "http_server.h"
@@ -82,8 +84,9 @@ int main(void) {
 
     std::cout << "Enter [quit] to stop the server" << std::endl;
     std::string command;
-    while (std::cin >> command, command != "quit")
-      ;
+    while (std::cin >> command, command != "quit") {
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
     std::cout << "'quit' command entered. Stopping the web server.."
               << std::endl;
     server.Stop();
