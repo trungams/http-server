@@ -237,8 +237,20 @@ void HttpServer::HandleHttpData(const EventData &raw_request,
   // Set response to write to client
   response_string =
       to_string(http_response, http_request.method() != HttpMethod::HEAD);
-  memcpy(raw_response->buffer, response_string.c_str(), kMaxBufferSize);
-  raw_response->length = response_string.length();
+  const size_t res_len = response_string.length();
+
+  // additionally copy the null terminator
+  if (res_len < kMaxBufferSize)
+    memcpy(raw_response->buffer, response_string.c_str(), res_len + 1);
+  // null-terminate the buffer if response cannot fit inside buffer
+  else
+    {
+      memcpy(raw_response->buffer, response_string.c_str(), 
+             kMaxBufferSize - 1);
+      raw_response->buffer[kMaxBufferSize - 1] = '\0';
+    }
+
+  raw_response->length = res_len;
 }
 
 HttpResponse HttpServer::HandleHttpRequest(const HttpRequest &request) {
