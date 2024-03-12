@@ -237,8 +237,9 @@ void HttpServer::HandleHttpData(const EventData &raw_request,
   // Set response to write to client
   response_string =
       to_string(http_response, http_request.method() != HttpMethod::HEAD);
-  memcpy(raw_response->buffer, response_string.c_str(), kMaxBufferSize);
-  raw_response->length = response_string.length();
+  size_t length = std::min(response_string.length(), kMaxBufferSize);
+  memcpy(raw_response->buffer, response_string.c_str(), length);
+  raw_response->length = length;
 }
 
 HttpResponse HttpServer::HandleHttpRequest(const HttpRequest &request) {
